@@ -5,7 +5,9 @@ types  = { -- # in this part change into your types from notification
  }
  
  function notification(title, message, type) -- # and in this part you can change notification export
-   exports["okokNotify"]:Alert(title, message, 5000, type)
+    SetNotificationTextEntry('STRING')
+    AddTextComponentString(message)
+    DrawNotification(0,1)
     
     --ESX.ShowNotification(message, 5000, type)
  
@@ -14,10 +16,6 @@ types  = { -- # in this part change into your types from notification
     --    description = message,
     --    type = type
     --})
- 
-    --SetNotificationTextEntry('STRING')
-    --AddTextComponentString(message)
-    --DrawNotification(0,1)
  
     --exports['mythic_notify']:DoHudText('inform', message)
  end
