@@ -194,18 +194,7 @@ AddEventHandler("qt-crafting:CraftCertainItem", function(data)
         else
             notification(locales.main_title, locales.cannot_craft, types.error)
         end
-    end, data.recipe)
-    
-    while true do 
-      Wait(0)
-        local inZone = ZoneCheck(data.coords)
-        if isBusy and inZone then 
-          --  print("Crafting protection started")
-        elseif isBusy and not inZone then  
-            notification(locales.main_title, locales.distance_behavior, types.error)
-            TriggerServerEvent("qt-crafting:KickPlayer")
-        end
-    end 
+    end, data.recipe) 
 
 end)
 
