@@ -1,5 +1,6 @@
-function Load()
-    MySQL.Sync.execute([[
+AddEventHandler('onServerResourceStart', function(resourceName)
+    if resourceName == GetCurrentResourceName() then
+     MySQL.Sync.execute([[
         CREATE TABLE IF NOT EXISTS `qt-crafting` (
             `craft_id` int(11) NOT NULL AUTO_INCREMENT,
             `craft_name` varchar(50) DEFAULT NULL,
@@ -19,8 +20,5 @@ function Load()
             `amount` int(11) DEFAULT NULL
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
     ]])
-end
-
-MySQL.ready(function()
-    Load()
+    end
 end)
