@@ -46,13 +46,21 @@ QT = {
         end
     end,
 
-    GetGroup = function(src)
-        local xPlayer = QT.GetFromId(tonumber(src))
-        if ESX ~= nil then
-            return xPlayer.getGroup()
-        elseif QBCore ~= nil then
-            return QBCore.Functions.GetPermission(xPlayer.source)
+  GetGroup = function(src)
+        local xPlayer = QT.GetFromId(src)
+        if xPlayer then
+            if ESX ~= nil then
+                return xPlayer.getGroup()
+            elseif QBCore ~= nil then
+                local permissions = QBCore.Functions.GetPermission(src)
+                for group, hasPermission in pairs(permissions) do
+                    if hasPermission then
+                        return group
+                    end
+                end
+            end
         end
+        return nil
     end,
 
     GetInventory = function(src)
