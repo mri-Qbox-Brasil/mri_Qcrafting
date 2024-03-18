@@ -51,7 +51,7 @@ QT = {
         if ESX ~= nil then
             return xPlayer.getGroup()
         elseif QBCore ~= nil then
-            return xPlayer.Functions.GetPermission()
+            return QBCore.Functions.GetPermission(xPlayer.source)
         end
     end,
 
