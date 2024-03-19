@@ -15,11 +15,21 @@ end)
 
 QT.RegisterCallback('qt-crafting:PermisionCheck', function(source, cb, permission)
     local group = QT.GetGroup(source)
-    if Config.Authorization[group][permission] then
-        cb(true)
-    else
-        cb(false)
-        server_notification(source, locales.main_title, locales.insuficient_permission, types.error)
+    
+    if ESX ~= nil then
+        if Config.Authorization[group] then
+            cb(true)
+        else
+            cb(false)
+            server_notification(source, locales.main_title, locales.insufficient_permission, types.error)
+        end
+    elseif QBCore ~= nil then
+        if IsPlayerAceAllowed(source, 'crafting') then
+            cb(true)
+        else
+            cb(false)
+            server_notification(source, locales.main_title, locales.insufficient_permission, types.error)
+        end
     end
 end)
 
