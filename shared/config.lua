@@ -14,20 +14,12 @@ Config.ImagePath = "ox_inventory/web/images/" -- # where images for items will d
     "ps-inventory/html/images/"
 ]]
 
-Config.Authorization = {
-    ['user'] = {
-        createtable = false,
-        editmenu = false, 
-    },
-    ['admin'] = {
-        createtable = true,
-        editmenu = true, 
-    },
-    ['dev'] = {
-        createtable = true,
-        editmenu = true, 
-    },
+Config.Authorization = { -- JUST FOR ESX  FOR QB READ UNDER!
+    ['admin'] = true,
+    ['god'] = true,
 }
+
+--  QB add in cfg add_ace group.admin crafting allow 
 
 Config.Pfx = "craft:"
 Config.CreateTableCommand = 'create'
