@@ -20,3 +20,8 @@ server_scripts {
     'bridge/server/*.lua',
     'sv_utils.lua',
 }
+
+dependencies {
+    'oxmysql',
+    'ox_lib',
+}
