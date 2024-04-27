@@ -9,7 +9,8 @@ types  = { -- # in this part change into your types from notification
                 type = type, 
                 title = title, 
                 description = message,
-                position = "left-center"
+                position = "center-left",
+                duration = 10000
             })
     -- SetNotificationTextEntry('STRING')
     -- AddTextComponentString(message)
