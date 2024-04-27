@@ -5,9 +5,15 @@ types  = { -- # in this part change into your types from notification
  }
  
  function notification(title, message, type) -- # and in this part you can change notification export
-    SetNotificationTextEntry('STRING')
-    AddTextComponentString(message)
-    DrawNotification(0,1)
+    lib.notify({
+                type = type, 
+                title = title, 
+                description = message,
+                position = "left-center"
+            })
+    -- SetNotificationTextEntry('STRING')
+    -- AddTextComponentString(message)
+    -- DrawNotification(0,1)
     
     --ESX.ShowNotification(message, 5000, type)
  

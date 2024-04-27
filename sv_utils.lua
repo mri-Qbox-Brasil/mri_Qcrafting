@@ -24,7 +24,7 @@ QT.RegisterCallback('qt-crafting:PermisionCheck', function(source, cb, permissio
             server_notification(source, locales.main_title, locales.insufficient_permission, types.error)
         end
     elseif QBCore ~= nil then
-        if IsPlayerAceAllowed(source, 'crafting') then
+        if IsPlayerAceAllowed(source, 'admin') then
             cb(true)
         else
             cb(false)

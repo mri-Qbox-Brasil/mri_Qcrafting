@@ -1,5 +1,5 @@
 Config = {}
-Config.Framework = "esx" -- # esx, qb
+Config.Framework = "qb" -- # esx, qb
 Config.Target = "ox_target" -- # ox_target, qb-target 
 Config.OxProgress = true -- # if you 're using ox progress just change to true but if you 're using other progress you must to go into bridge/client/editable.lua
 Config.ImagePath = "ox_inventory/web/images/" -- # where images for items will display
