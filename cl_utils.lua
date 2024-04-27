@@ -340,24 +340,24 @@ AddEventHandler('qt-crafting:OpenEditFunctions', function(args)
                 end,
                 description = locales.desc_edit_position
               },
-              {
-                title = locales.blip_settings,
-                icon = "fa-solid fa-map",
-                onSelect = function()
-                    local blip = lib.inputDialog(locales.blip_creation, {
-                        { type = 'number', label = locales.blip_sprite, required = true, max = 883, min = 0 },
-                        { type = 'number', label = locales.blip_colour, required = true, max = 85, min = 0 },
-                        { type = 'input', label = locales.blip_scale,  required = true },
-                        { type = 'input',  label = locales.blip_label,  required = true, default = "BLIP NAME", icon = "signature" },
-                    })
-                    if not blip then return end
-                    local blipce = { sprite = blip[1], colour = blip[2], scale = tonumber(blip[3]), blip_label = blip[4] }
-                        TriggerServerEvent("qt-crafting:UpdateBlip", blipce, args.craft_id, args.craft_name)
-                        Wait(100)
-                        TriggerServerEvent("qt-crafting:Update")
-                end,
-                description = locales.desc_blipsettings
-              },
+            --   {
+            --     title = locales.blip_settings,
+            --     icon = "fa-solid fa-map",
+            --     onSelect = function()
+            --         local blip = lib.inputDialog(locales.blip_creation, {
+            --             { type = 'number', label = locales.blip_sprite, required = true, max = 883, min = 0 },
+            --             { type = 'number', label = locales.blip_colour, required = true, max = 85, min = 0 },
+            --             { type = 'input', label = locales.blip_scale,  required = true },
+            --             { type = 'input',  label = locales.blip_label,  required = true, default = "BLIP NAME", icon = "signature" },
+            --         })
+            --         if not blip then return end
+            --         local blipce = { sprite = blip[1], colour = blip[2], scale = tonumber(blip[3]), blip_label = blip[4] }
+            --             TriggerServerEvent("qt-crafting:UpdateBlip", blipce, args.craft_id, args.craft_name)
+            --             Wait(100)
+            --             TriggerServerEvent("qt-crafting:Update")
+            --     end,
+            --     description = locales.desc_blipsettings
+            --   },
               {
                 title = locales.delete_crafttable,
                 icon = "trash",
