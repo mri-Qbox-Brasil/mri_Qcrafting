@@ -16,7 +16,7 @@ locales = {
     blip_scale = 'Escala do Blip',
     blip_label = 'Rótulo do Blip',
     help = {
-        ('Movendo o mouse moverá o objeto \n'),
+        ('Mover o mouse moverá o objeto \n'),
         ('[ESQUERDA] Girar para a esquerda \n'),
         ('[DIREITA] Girar para a direita \n'),
         ('[ENTER] Concluir criação \n'),
