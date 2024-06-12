@@ -287,7 +287,8 @@ AddEventHandler('qt-crafting:OpenEditFunctions', function(args)
                         CreateThread(function()
                             while true do
                             ---@diagnostic disable-next-line: need-check-nil
-                                local hit, coords, entity = raycast(100.0)
+                                -- local hit, coords, entity = raycast(100.0)
+                                local hit, entity, coords = lib.raycast.cam(1, 4)
                 
                                 if not created then
                                     created = true
@@ -316,10 +317,10 @@ AddEventHandler('qt-crafting:OpenEditFunctions', function(args)
                                 local pedPos = GetEntityCoords(cache.ped)
                                 local distance = #(coords - pedPos)
                 
-                                    if distance >= 3.5 then
+                                    -- if distance >= 0 then
                                         SetEntityCoords(obj, coords.x, coords.y, coords.z)
                                         SetEntityHeading(obj, heading)
-                                    end
+                                    -- end
                                 Wait(0)
                             end
                         end)
@@ -468,7 +469,8 @@ AddEventHandler("qt-crafting:CreateMenu", function()
             while true do
             if jobSelectionDone then
             ---@diagnostic disable-next-line: need-check-nil
-                local hit, coords, entity = raycast(100.0)
+                -- local hit, coords, entity = raycast(100.0)
+                local hit, entity, coords = lib.raycast.cam(1, 4)
 
                 if not created then
                     created = true
@@ -498,10 +500,10 @@ AddEventHandler("qt-crafting:CreateMenu", function()
                 local pedPos = GetEntityCoords(cache.ped)
                 local distance = #(coords - pedPos)
 
-                    if distance >= 3.5 then
+                    -- if distance >= 0 then
                         SetEntityCoords(obj, coords.x, coords.y, coords.z)
                         SetEntityHeading(obj, heading)
-                    end
+                    -- end
                 end
                 Wait(0)
             end

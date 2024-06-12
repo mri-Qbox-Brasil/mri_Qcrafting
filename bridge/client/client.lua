@@ -12,19 +12,6 @@ types  = { -- # in this part change into your types from notification
                 position = "center-left",
                 duration = 10000
             })
-    -- SetNotificationTextEntry('STRING')
-    -- AddTextComponentString(message)
-    -- DrawNotification(0,1)
-    
-    --ESX.ShowNotification(message, 5000, type)
- 
-    --lib.notify({
-    --    title = 'SERVER NAME',
-    --    description = message,
-    --    type = type
-    --})
- 
-    --exports['mythic_notify']:DoHudText('inform', message)
  end
  
 
@@ -68,7 +55,6 @@ function progress(message, duration, type)
 end
 
 QT = {
-
     TriggerCallback = function(name, cb, ...)
         if ESX ~= nil then
             ESX.TriggerServerCallback(name, cb, ...)
@@ -96,6 +82,3 @@ function animation(animDict) -- do not delete this or change nothing
     end
     return animDict
 end
-
-
-
