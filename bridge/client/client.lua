@@ -69,6 +69,14 @@ QT = {
         elseif QBCore ~= nil then
             return QBCore.Functions.GetPlayerData().job.name
         end
+    end,
+
+    getgang = function()
+        if ESX ~= nil then
+            return ESX.GetPlayerData().gang.name
+        elseif QBCore ~= nil then
+            return QBCore.Functions.GetPlayerData().gang.name
+        end
     end
     
 }

@@ -47,7 +47,7 @@ local function CreateTables()
                                     if v.jobenb then 
                                         local loop = v.jobs
                                         for _, item in ipairs(loop) do
-                                            if item == QT.getjob() then
+                                            if item == QT.getjob() or item == QT.getgang() then
                                                 if not isBusy then 
                                                     return true 
                                                 else
