@@ -42,7 +42,15 @@ QT = {
         if ESX ~= nil then
             return ESX.GetJobs()
         elseif QBCore ~= nil then
-            return QBCore.Shared.Jobs
+            return exports.qbx_core:GetJobs()
+        end
+    end,
+
+    GetGangs = function()
+        if ESX ~= nil then
+            return ESX.GetGangs()
+        elseif QBCore ~= nil then
+            return exports.qbx_core:GetGangs()
         end
     end,
 

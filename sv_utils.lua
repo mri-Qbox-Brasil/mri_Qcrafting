@@ -37,7 +37,16 @@ QT.RegisterCallback('qt-crafting:fetchJobs', function(source, cb)
     local jobs = QT.GetJobs()
     local options = {}
     for k, v in pairs(jobs) do
-        options[#options + 1] = { label = v.label, value = k }
+        if v.label ~= 'Civil' then
+            options[#options + 1] = { label = v.label, value = k }
+        end
+    end
+
+    local gangs = QT.GetGangs()
+    for k, v in pairs(gangs) do
+        if v.label ~= 'Sem gangue' then
+            options[#options + 1] = { label = v.label, value = k }
+        end
     end
     cb(options)
 end)
