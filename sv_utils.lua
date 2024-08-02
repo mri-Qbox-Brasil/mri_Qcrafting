@@ -6,6 +6,7 @@ local craftLobyy = {}
 RegisterNetEvent("qt-crafting:ItemInterval", function(task, item, count)
     if IsValidTask(task) and QT.GetFromId(source) then
         if task == "add" then
+            print("add", item, count)
             QT.AddItem(source, item, count)
         elseif task == "remove" then
             QT.RemoveItem(source, item, count)
@@ -99,7 +100,9 @@ QT.RegisterCallback("qt-crafting:GetListItems", function(source, cb, args)
                 send[#send+1] = {
                     craft_id = someData.craft_id,
                     item = someData.item,
-                    item_label = someData.item_label
+                    item_label = someData.item_label,
+                    model = someData.model,
+                    amount = someData.amount
                 }
             end
             cb(send)
@@ -122,6 +125,7 @@ QT.RegisterCallback("qt-crafting:fetchItemsFromId", function(source, cb, args)
                     recipe = json.decode(someData.recipe),
                     amount = someData.amount,
                     time = someData.time,
+                    model = someData.model
                 }
             end
             cb(send)
@@ -150,7 +154,7 @@ end)
 RegisterNetEvent("qt-crafting:AddItemCrafting", function (data)
     local xPlayer = QT.GetFromId(source)
     if xPlayer then
-        MySQL.Async.execute('INSERT INTO `qt-crafting-items` (craft_id, item, item_label, recipe, time, amount) VALUES (@craft_id, @item, @item_label, @recipe, @time, @amount)',
+        MySQL.Async.execute('INSERT INTO `qt-crafting-items` (craft_id, item, item_label, recipe, time, amount, model) VALUES (@craft_id, @item, @item_label, @recipe, @time, @amount, @model)',
             {
                 ['@craft_id'] = data.craft_id,
                 ['@item'] = data.main_item,
@@ -158,6 +162,7 @@ RegisterNetEvent("qt-crafting:AddItemCrafting", function (data)
                 ['@recipe'] = json.encode(data.recipe),
                 ['@amount'] = data.amount,
                 ['@time'] = data.time,
+                ['@model'] = data.model,
             }, function(result)
         end)
     end
@@ -351,6 +356,10 @@ RegisterNetEvent("qt-crafting:UpdateItems", function(id, item, need_data, task)
         elseif task == "amount" then 
             MySQL.update('UPDATE `qt-crafting-items` SET amount = ? WHERE craft_id = ? AND item = ? ', {json.encode(need_data), id, item})
             server_notification(xPlayer.source, locales.main_title, locales.item_amount_reward_upd, types.success)
+        elseif task == "model" then 
+            print("chegou model")
+            MySQL.update('UPDATE `qt-crafting-items` SET model = ? WHERE craft_id = ? AND item = ? ', {need_data, id, item})
+            server_notification(xPlayer.source, locales.main_title, locales.item_model_upd, types.success)
         end
     end
 end) 

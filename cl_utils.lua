@@ -79,42 +79,68 @@ AddEventHandler('qt-crafting:OpenEditFunctions', function(args)
                 title = locales.items_options_menu,
                 icon = "gears",
                 onSelect = function()
-                    lib.registerContext({
-                        id = 'items_menu_configuration',
-                        title = args.craft_name,
-                        menu = 'edit_opcije',
-                        options = {
-                            {
-                                title = locales.add_items_craft,
-                                icon = "plus",
-                                onSelect = function()
-                                    local adder = lib.inputDialog(args.craft_name, {
-                                        {type = 'input', label = locales.item, description = locales.desc_add_1, required = true, placeholder = locales.cola_example},
-                                        {type = 'input', label = locales.item_label, description = locales.desc_add_2, required = true, placeholder = locales.cocacola_example},
-                                        {type = 'number', label = locales.item_recipe, description = locales.desc_add_3, required = true},
-                                        {type = 'input', label = locales.time_to_craft, description = locales.desc_add_4, required = true, placeholder = locales.placeholder_itemadd},
-                                        {type = 'number', label = locales.amount_to_craft, description = locales.desc_add_5, required = true},
-                                      })
-                                      if not adder then return end 
-                                      if tonumber(adder[4]) then 
-                                        local recipee = createRecipe(adder[3])
-                                        local main_recipe = { craft_id = args.craft_id, main_item = adder[1], item_label = adder[2], recipe = recipee, time = tonumber(adder[4]), amount = adder[5] }
-                                        TriggerServerEvent("qt-crafting:AddItemCrafting", main_recipe)
-                                        notification(locales.main_title, locales.items_added_success, types.success)
-                                      else
-                                         notification(locales.main_title, locales.time_must_number, types.error)
-                                      end
-                                end,
-                                description = locales.desc_add
-                              },
-                              {
-                                title = locales.list_itemsa,
-                                description = locales.desc_listitems,
-                                icon = "clipboard-user",
-                                onSelect = function()
+                    -- lib.registerContext({
+                    --     id = 'items_menu_configuration',
+                    --     title = args.craft_name,
+                    --     menu = 'edit_opcije',
+                    --     options = {
+                    --         {
+                    --             title = locales.add_items_craft,
+                    --             icon = "plus",
+                    --             onSelect = function()
+                    --                 local adder = lib.inputDialog(args.craft_name, {
+                    --                     {type = 'select', label = locales.item, description = locales.desc_add_1, options = GetBaseItems(), required = true, placeholder = locales.cola_example, searchable = true},
+                    --                     {type = 'input', label = locales.item_label, description = locales.desc_add_2, required = true, placeholder = locales.cocacola_example},
+                    --                     {type = 'number', label = locales.item_recipe, description = locales.desc_add_3, required = true},
+                    --                     {type = 'input', label = locales.time_to_craft, description = locales.desc_add_4, required = true, placeholder = locales.placeholder_itemadd},
+                    --                     {type = 'number', label = locales.amount_to_craft, description = locales.desc_add_5, required = true},
+                    --                     {type = 'input', label = locales.item_model, description = locales.desc_add_6}
+                    --                   })
+                    --                   if not adder then return end 
+                    --                   if tonumber(adder[4]) then 
+                    --                     local recipee = createRecipe(adder[3])
+                    --                     local main_recipe = { craft_id = args.craft_id, main_item = adder[1], item_label = adder[2], recipe = recipee, time = tonumber(adder[4]), amount = adder[5], model = adder[6] }
+                    --                     TriggerServerEvent("qt-crafting:AddItemCrafting", main_recipe)
+                    --                     notification(locales.main_title, locales.items_added_success, types.success)
+                    --                   else
+                    --                      notification(locales.main_title, locales.time_must_number, types.error)
+                    --                   end
+                    --             end,
+                    --             description = locales.desc_add
+                    --           },
+                    --           {
+                    --             title = locales.list_itemsa,
+                    --             description = locales.desc_listitems,
+                    --             icon = "clipboard-user",
+                    --             onSelect = function()
                                     QT.TriggerCallback('qt-crafting:GetListItems', function(result)
                                         if result then
-                                            local options = {} 
+                                            local options = {                            
+                                                {
+                                                title = locales.add_items_craft,
+                                                icon = "plus",
+                                                onSelect = function()
+                                                    local adder = lib.inputDialog(args.craft_name, {
+                                                        {type = 'select', label = locales.item, description = locales.desc_add_1, options = GetBaseItems(), required = true, placeholder = locales.cola_example, searchable = true},
+                                                        {type = 'input', label = locales.item_label, description = locales.desc_add_2, required = true, placeholder = locales.cocacola_example},
+                                                        {type = 'number', label = locales.item_recipe, description = locales.desc_add_3, required = true},
+                                                        {type = 'input', label = locales.time_to_craft, description = locales.desc_add_4, required = true, placeholder = locales.placeholder_itemadd},
+                                                        {type = 'number', label = locales.amount_to_craft, description = locales.desc_add_5, required = true},
+                                                        {type = 'input', label = locales.item_model, description = locales.desc_add_6}
+                                                      })
+                                                      if not adder then return end 
+                                                      if tonumber(adder[4]) then 
+                                                        local recipee = createRecipe(adder[3])
+                                                        local main_recipe = { craft_id = args.craft_id, main_item = adder[1], item_label = adder[2], recipe = recipee, time = tonumber(adder[4]), amount = adder[5], model = adder[6] }
+                                                        TriggerServerEvent("qt-crafting:AddItemCrafting", main_recipe)
+                                                        notification(locales.main_title, locales.items_added_success, types.success)
+                                                      else
+                                                         notification(locales.main_title, locales.time_must_number, types.error)
+                                                      end
+                                                end,
+                                                description = locales.desc_add
+                                              }
+                                            } 
                                             for i=1, #result do 
                                                 local someData = result[i]
                                                 options[#options+1] = {
@@ -129,8 +155,9 @@ AddEventHandler('qt-crafting:OpenEditFunctions', function(args)
                                                             options = {
                                                                 {
                                                                     title = locales.delete_items,
-                                                                    description = locales.desc_deleteitems,
+                                                                    -- description = locales.desc_deleteitems,
                                                                     icon = "trash",
+                                                                    iconColor = 'red',
                                                                     onSelect = function()
                                                                         local warning = lib.alertDialog({
                                                                             header = locales.automaticmessage,
@@ -148,14 +175,14 @@ AddEventHandler('qt-crafting:OpenEditFunctions', function(args)
                                                                 },
                                                                 {
                                                                     title = locales.change_craft_times,
-                                                                    description = locales.desc_changeeachtime,
+                                                                    -- description = locales.desc_changeeachtime,
                                                                     icon = "clock",
                                                                     onSelect = function()
                                                                         local timer = lib.inputDialog(locales.new_time, {
                                                                             {type = 'number', label = locales.enter_time, default = "15", description = "* in seconds *", required = true},
                                                                         })
                                                             
-                                                                        if not timer then return end 
+                                                                        if not timer then return lib.showContext('edit_options_items') end 
                                 
                                                                         TriggerServerEvent("qt-crafting:UpdateItems", args.craft_id, someData.item, timer[1], "time")
                                                                         Wait(100)
@@ -164,39 +191,51 @@ AddEventHandler('qt-crafting:OpenEditFunctions', function(args)
                                                                 },
                                                                 {
                                                                     title = locales.change_recipe,
-                                                                    description = locales.desc_changerecipe,
+                                                                    -- description = locales.desc_changerecipe,
                                                                     icon = "right-left",
                                                                     onSelect = function()
                                                                         local updatera = lib.inputDialog(args.craft_name, {
                                                                             {type = 'number', label = locales.item_recipe, description = locales.desc_add_3, required = true},
                                                                           })
-                                                                          if not updatera then return end 
+                                                                          if not updatera then return lib.showContext('edit_options_items') end 
                                                                             local recipee = createRecipe(updatera[1])
                                                                             TriggerServerEvent("qt-crafting:UpdateItems", args.craft_id, someData.item, recipee, "recipe")
                                                                     end,
                                                                 },
                                                                 {
                                                                     title = locales.change_item_display,
-                                                                    description = locales.desc_displayname_item,
+                                                                    -- description = locales.desc_displayname_item,
                                                                     icon = "arrow-up-9-1",
                                                                     onSelect = function()
                                                                         local name = lib.inputDialog(args.craft_name, {
                                                                             {type = 'input', label = locales.item_label, placeholder = locales.desc_add_2, required = true},
                                                                           })
-                                                                          if not name then return end 
+                                                                          if not name then return lib.showContext('edit_options_items') end 
                                                                           TriggerServerEvent("qt-crafting:UpdateItems", args.craft_id, someData.item, name[1], "label")
                                                                     end,
                                                                 },
                                                                 {
                                                                     title = locales.change_reward_amount,
-                                                                    description = locales.desc_reward_amount,
+                                                                    description = string.format('%s %s', locales.desc_reward_amount, someData.amount),
                                                                     icon = "scale-unbalanced-flip",
                                                                     onSelect = function()
                                                                         local amount = lib.inputDialog(args.craft_name, {
-                                                                            {type = 'number', label = locales.amount_to_craft, placeholder = locales.desc_add_5, required = true},
+                                                                            {type = 'number', label = locales.amount_to_craft, placeholder = locales.desc_add_5, default = someData.amount, required = true},
                                                                           })
-                                                                          if not amount then return end 
+                                                                          if not amount then return lib.showContext('edit_options_items') end 
                                                                           TriggerServerEvent("qt-crafting:UpdateItems", args.craft_id, someData.item, amount[1], "amount")
+                                                                    end,
+                                                                },
+                                                                {
+                                                                    title = locales.item_model,
+                                                                    description = someData.model or locales.noprop,
+                                                                    icon = "fa-solid fa-gears",
+                                                                    onSelect = function()
+                                                                        local model = lib.inputDialog(args.craft_name, {
+                                                                            {type = 'input', label = locales.item_model, description = locales.desc_add_6, default = someData.model, required = true},
+                                                                          })
+                                                                          if not model then return lib.showContext('edit_options_items') end 
+                                                                          TriggerServerEvent("qt-crafting:UpdateItems", args.craft_id, someData.item, model[1], "model")
                                                                     end,
                                                                 },
                                                             }
@@ -209,17 +248,17 @@ AddEventHandler('qt-crafting:OpenEditFunctions', function(args)
                                             lib.registerContext({
                                                 id = 'items_listiii',
                                                 title = locales.list_itemsa,
-                                                menu = "items_menu_configuration",
+                                                menu = "edit_opcije",
                                                 options = options
                                             })
                                             lib.showContext('items_listiii')
                                         end
                                     end, args.craft_id)
-                                end,
-                              },
-                        }
-                      })
-                      lib.showContext('items_menu_configuration')
+                    --             end,
+                    --         },
+                    --     }
+                    -- })
+                    -- lib.showContext('items_menu_configuration')
                 end,
                 description = locales.desc_items_options
               },
@@ -389,7 +428,7 @@ function createRecipe(numRecipe)
     local recipetable = {}
     for i = 1, numRecipe do
         local recipeInput = lib.inputDialog(locales.recipeitem.. ' (' .. i .. '/' ..numRecipe..')', {
-            {type = 'input', label = locales.item, description = locales.desc_add_1, required = true},
+            {type = 'select', label = locales.item, description = locales.desc_add_1, options = GetBaseItems(), required = true, searchable = true},
             {type = 'input', label = locales.item_label, description = locales.desc_add_2, required = true},
             {type = 'number', label = locales.how_much, description = desc_how_much, required = true},
         })
@@ -511,3 +550,15 @@ AddEventHandler("qt-crafting:CreateMenu", function()
         collectgarbage("collect")
     end, input[1])
 end)
+
+
+function GetBaseItems()
+    local items = {}
+    for k, v in pairs(exports.ox_inventory:Items()) do
+        items[#items + 1] = {
+            value = k,
+            label = string.format('%s (%s)', v.label, k)
+        }
+    end
+    return items
+end
