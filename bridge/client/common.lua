@@ -68,7 +68,8 @@ local function CreateTables()
                                         end
                                 end,
                                 onSelect = function(data)
-                                    CraftMenu(v.id, v.name, v.coords, #objects)
+                                    print(#objects)
+                                    CraftMenu(v.id, v.name, v.coords, k)
                                 end,
                                 onExit = toggleCam(false)
                             }
