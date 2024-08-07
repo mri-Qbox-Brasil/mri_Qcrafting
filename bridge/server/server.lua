@@ -1,5 +1,5 @@
 function server_notification(player, title, message, type)
-    TriggerClientEvent('okokNotify:Alert', player, title, message, 5000, type)
+    -- TriggerClientEvent('okokNotify:Alert', player, title, message, 5000, type)
 end
 
 types  = { -- # in this part change into your types from notification 

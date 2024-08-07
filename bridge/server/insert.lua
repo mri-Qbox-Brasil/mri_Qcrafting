@@ -29,5 +29,14 @@ AddEventHandler('onServerResourceStart', function(resourceName)
                 ADD `model` LONGTEXT DEFAULT NULL;
             ]])
         end
+
+        -- Verifica se a coluna 'model' existe antes de tentar adicioná-la
+        local result = MySQL.Sync.fetchAll("SHOW COLUMNS FROM `qt-crafting-items` LIKE 'anim';")
+        if #result == 0 then
+            MySQL.Sync.execute([[
+                ALTER TABLE `qt-crafting-items`
+                ADD `anim` LONGTEXT DEFAULT NULL;
+            ]])
+        end
     end
 end)

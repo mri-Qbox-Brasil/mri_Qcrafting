@@ -1,12 +1,9 @@
-print("[^1"..GetCurrentResourceName().."^7] is ready to use!")
-
 local workshops = {}
 local craftLobyy = {}
 
 RegisterNetEvent("qt-crafting:ItemInterval", function(task, item, count)
     if IsValidTask(task) and QT.GetFromId(source) then
         if task == "add" then
-            print("add", item, count)
             QT.AddItem(source, item, count)
         elseif task == "remove" then
             QT.RemoveItem(source, item, count)
@@ -14,9 +11,9 @@ RegisterNetEvent("qt-crafting:ItemInterval", function(task, item, count)
     end
 end)
 
-QT.RegisterCallback('qt-crafting:PermisionCheck', function(source, cb, permission)
+QT.RegisterCallback('qt-crafting:PermisionCheck', function(source, cb)
     local group = QT.GetGroup(source)
-    
+
     if ESX ~= nil then
         if Config.Authorization[group] then
             cb(true)
@@ -54,8 +51,10 @@ end)
 
 RegisterNetEvent('qt-crafting:CreateWorkShop', function(data)
     local craft_id = math.random(1, 1000000)
-    local crafting = { model = data.prop, propcoords = vec3(data.propcoords.x, data.propcoords.y, data.propcoords.z), heading = data.heading, blipenable = data.blipenable, jobenable = data.jobenable}
-    MySQL.Async.execute('INSERT INTO `qt-crafting` (craft_id, craft_name, crafting, blipdata, jobs) VALUES (@craft_id, @craft_name, @crafting, @blipdata, @jobs)',
+    local crafting = { model = data.prop, propcoords = vec3(data.propcoords.x, data.propcoords.y, data.propcoords.z), heading =
+    data.heading, blipenable = data.blipenable, jobenable = data.jobenable }
+    MySQL.Async.execute(
+        'INSERT INTO `qt-crafting` (craft_id, craft_name, crafting, blipdata, jobs) VALUES (@craft_id, @craft_name, @crafting, @blipdata, @jobs)',
         {
             ['@craft_id'] = craft_id,
             ['@craft_name'] = data.craft_name,
@@ -63,15 +62,15 @@ RegisterNetEvent('qt-crafting:CreateWorkShop', function(data)
             ['@blipdata'] = json.encode(data.blip),
             ['@jobs'] = json.encode(data.jobs),
         }, function(affectedRows)
-    end)
+        end)
 end)
 
 QT.RegisterCallback('qt-crafting:TableExist', function(source, cb, name)
-	MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_name = @craft_name', {
-		['@craft_name'] = name
-	}, function (result)
-		cb(result[1] ~= nil)
-	end)
+    MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_name = @craft_name', {
+        ['@craft_name'] = name
+    }, function(result)
+        cb(result[1] ~= nil)
+    end)
 end)
 
 QT.RegisterCallback("qt-crafting:GetList", function(source, cb)
@@ -79,9 +78,13 @@ QT.RegisterCallback("qt-crafting:GetList", function(source, cb)
         if result then
             local send = {}
             for i = 1, #result, 1 do
-                send[#send+1] = {
+                local craftData = json.decode(result[i].crafting)
+                send[#send + 1] = {
                     craft_name = result[i].craft_name,
-                    craft_id = result[i].craft_id
+                    craft_id = result[i].craft_id,
+                    jobs = json.decode(result[i].jobs),
+                    crafting = craftData,
+                    offset = craftData.offset and craftData.offset or 1.1
                 }
             end
             cb(send)
@@ -92,17 +95,18 @@ QT.RegisterCallback("qt-crafting:GetList", function(source, cb)
 end)
 
 QT.RegisterCallback("qt-crafting:GetListItems", function(source, cb, args)
-    MySQL.query('SELECT * FROM `qt-crafting-items` WHERE craft_id = ?', {args}, function(result)
+    MySQL.query('SELECT * FROM `qt-crafting-items` WHERE craft_id = ?', { args }, function(result)
         if result then
             local send = {}
             for i = 1, #result, 1 do
                 local someData = result[i]
-                send[#send+1] = {
+                send[#send + 1] = {
                     craft_id = someData.craft_id,
                     item = someData.item,
                     item_label = someData.item_label,
                     model = someData.model,
-                    amount = someData.amount
+                    amount = someData.amount,
+                    anim = someData.anim
                 }
             end
             cb(send)
@@ -113,19 +117,20 @@ QT.RegisterCallback("qt-crafting:GetListItems", function(source, cb, args)
 end)
 
 QT.RegisterCallback("qt-crafting:fetchItemsFromId", function(source, cb, args)
-    MySQL.query('SELECT * FROM `qt-crafting-items` WHERE craft_id = ?', {args}, function(result)
+    MySQL.query('SELECT * FROM `qt-crafting-items` WHERE craft_id = ?', { args }, function(result)
         if result then
             local send = {}
             for i = 1, #result, 1 do
                 local someData = result[i]
-                send[#send+1] = {
+                send[#send + 1] = {
                     craft_id = someData.craft_id,
                     item = someData.item,
                     item_label = someData.item_label,
                     recipe = json.decode(someData.recipe),
                     amount = someData.amount,
                     time = someData.time,
-                    model = someData.model
+                    model = someData.model,
+                    anim = someData.anim
                 }
             end
             cb(send)
@@ -135,26 +140,27 @@ QT.RegisterCallback("qt-crafting:fetchItemsFromId", function(source, cb, args)
     end)
 end)
 
-RegisterNetEvent("qt-crafting:ChangeName", function (id, newname)
+RegisterNetEvent("qt-crafting:ChangeName", function(id, newname)
     local xPlayer = QT.GetFromId(source)
     if xPlayer then
-        MySQL.update('UPDATE `qt-crafting` SET craft_name = ? WHERE craft_id = ?', {newname, id})
+        MySQL.update('UPDATE `qt-crafting` SET craft_name = ? WHERE craft_id = ?', { newname, id })
     end
 end)
 
 RegisterNetEvent("qt-crafting:DeleteTable", function(id, name)
     local xPlayer = QT.GetFromId(source)
     if xPlayer then
-        MySQL.Async.execute('DELETE FROM `qt-crafting` WHERE craft_id = ?', {id})
-        MySQL.Async.execute('DELETE FROM `qt-crafting-items` WHERE craft_id = ?', {id})
-        server_notification(source, locales.main_title, locales.sucessfullydeleted.. ' ' ..name, types.success)
+        MySQL.Async.execute('DELETE FROM `qt-crafting` WHERE craft_id = ?', { id })
+        MySQL.Async.execute('DELETE FROM `qt-crafting-items` WHERE craft_id = ?', { id })
+        server_notification(source, locales.main_title, locales.sucessfullydeleted .. ' ' .. name, types.success)
     end
 end)
 
-RegisterNetEvent("qt-crafting:AddItemCrafting", function (data)
+RegisterNetEvent("qt-crafting:AddItemCrafting", function(data)
     local xPlayer = QT.GetFromId(source)
     if xPlayer then
-        MySQL.Async.execute('INSERT INTO `qt-crafting-items` (craft_id, item, item_label, recipe, time, amount, model) VALUES (@craft_id, @item, @item_label, @recipe, @time, @amount, @model)',
+        MySQL.Async.execute(
+            'INSERT INTO `qt-crafting-items` (craft_id, item, item_label, recipe, time, amount, model, anim) VALUES (@craft_id, @item, @item_label, @recipe, @time, @amount, @model, @anim)',
             {
                 ['@craft_id'] = data.craft_id,
                 ['@item'] = data.main_item,
@@ -163,28 +169,31 @@ RegisterNetEvent("qt-crafting:AddItemCrafting", function (data)
                 ['@amount'] = data.amount,
                 ['@time'] = data.time,
                 ['@model'] = data.model,
+                ['@anim'] = data.anim
             }, function(result)
-        end)
+            end)
     end
 end)
 
 AddEventHandler('onServerResourceStart', function(resourceName)
     if resourceName == GetCurrentResourceName() then
         MySQL.Async.fetchAll('SELECT * FROM `qt-crafting`', {}, function(result)
-                for i = 1, #result, 1 do
-                    local craftData = json.decode(result[i].crafting)
-                    local blipData = json.decode(result[i].blipdata)
-                    local jobsData = json.decode(result[i].jobs)
-                    insert(workshops, {
-                        model = craftData.model, 
-                        id = result[i].craft_id, 
-                        name = result[i].craft_name,
-                        coords = vector4(craftData.propcoords.x, craftData.propcoords.y, craftData.propcoords.z, craftData.heading),
-                        jobenb = craftData.jobenable,
-                        blipenb = craftData.blipenable,
-                        blipdata = blipData,
-                        jobs = jobsData
-                    })
+            for i = 1, #result, 1 do
+                local craftData = json.decode(result[i].crafting)
+                local blipData = json.decode(result[i].blipdata)
+                local jobsData = json.decode(result[i].jobs)
+                insert(workshops, {
+                    model = craftData.model,
+                    id = result[i].craft_id,
+                    name = result[i].craft_name,
+                    coords = vector4(craftData.propcoords.x, craftData.propcoords.y, craftData.propcoords.z,
+                        craftData.heading),
+                    jobenb = craftData.jobenable,
+                    blipenb = craftData.blipenable,
+                    blipdata = blipData,
+                    jobs = jobsData,
+                    offset = craftData.offset and tonumber(craftData.offset) or 1.1
+                })
             end
         end)
     end
@@ -195,7 +204,7 @@ QT.RegisterCallback('qt-crafting:fetchTables', function(source, cb)
 end)
 
 RegisterNetEvent("qt-crafting:Update")
- AddEventHandler("qt-crafting:Update", function()
+AddEventHandler("qt-crafting:Update", function()
     workshops = {}
     MySQL.Async.fetchAll('SELECT * FROM `qt-crafting`', {}, function(result)
         for i = 1, #result, 1 do
@@ -203,30 +212,34 @@ RegisterNetEvent("qt-crafting:Update")
             local blipData = json.decode(result[i].blipdata)
             local jobsData = json.decode(result[i].jobs)
             insert(workshops, {
-                model = craftData.model, 
-                id = result[i].craft_id, 
+                model = craftData.model,
+                id = result[i].craft_id,
                 name = result[i].craft_name,
-                coords = vector4(craftData.propcoords.x, craftData.propcoords.y, craftData.propcoords.z, craftData.heading),
+                coords = vector4(craftData.propcoords.x, craftData.propcoords.y, craftData.propcoords.z,
+                    craftData.heading),
                 jobenb = craftData.jobenable,
                 blipenb = craftData.blipenable,
                 blipdata = blipData,
-                jobs = jobsData
+                jobs = jobsData,
+                offset = craftData.offset and tonumber(craftData.offset) or 1.1
             })
         end
-   end)
-   Wait(50)
-   TriggerClientEvent("qt-crafting:Sync", -1)
+    end)
+    Wait(50)
+    TriggerClientEvent("qt-crafting:Sync", -1)
 end)
 
-RegisterNetEvent("qt-crafting:ChangeJobs", function (id, jobs)
+RegisterNetEvent("qt-crafting:ChangeJobs", function(id, jobs)
     local xPlayer = QT.GetFromId(source)
     if xPlayer then
-        MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', {id}, function(result)
+        MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', { id }, function(result)
             for i = 1, #result, 1 do
                 local craftData = json.decode(result[i].crafting)
-                local ndata = { propcoords = vector3(craftData.propcoords.x, craftData.propcoords.y, craftData.propcoords.z), heading = craftData.heading, jobenable = true, blipenable = craftData.blipenable, model = craftData.model }
-                MySQL.update('UPDATE `qt-crafting` SET jobs = ? WHERE craft_id = ?', {json.encode(jobs), id})
-                MySQL.update('UPDATE `qt-crafting` SET crafting = ? WHERE craft_id = ?', {json.encode(ndata), id})
+                local ndata = { propcoords = vector3(craftData.propcoords.x, craftData.propcoords.y,
+                    craftData.propcoords.z), heading = craftData.heading, jobenable = true, blipenable = craftData
+                .blipenable, model = craftData.model, offset = craftData.offset }
+                MySQL.update('UPDATE `qt-crafting` SET jobs = ? WHERE craft_id = ?', { json.encode(jobs), id })
+                MySQL.update('UPDATE `qt-crafting` SET crafting = ? WHERE craft_id = ?', { json.encode(ndata), id })
                 server_notification(xPlayer.source, locales.main_title, locales.job_successfully_changed, types.success)
                 break
             end
@@ -234,15 +247,17 @@ RegisterNetEvent("qt-crafting:ChangeJobs", function (id, jobs)
     end
 end)
 
-RegisterNetEvent("qt-crafting:RemoveRequirement", function (id)
+RegisterNetEvent("qt-crafting:RemoveRequirement", function(id)
     local xPlayer = QT.GetFromId(source)
     if xPlayer then
-        MySQL.update('UPDATE `qt-crafting` SET jobs = ? WHERE craft_id = ?', {nil, id})
-        MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', {id}, function(result)
+        MySQL.update('UPDATE `qt-crafting` SET jobs = ? WHERE craft_id = ?', { nil, id })
+        MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', { id }, function(result)
             for i = 1, #result, 1 do
                 local craftData = json.decode(result[i].crafting)
-                local ndata = { propcoords = vector3(craftData.propcoords.x, craftData.propcoords.y, craftData.propcoords.z), heading = craftData.heading, jobenable = false, blipenable = craftData.blipenable, model = craftData.model }
-                MySQL.update('UPDATE `qt-crafting` SET crafting = ? WHERE craft_id = ?', {json.encode(ndata), id})
+                local ndata = { propcoords = vector3(craftData.propcoords.x, craftData.propcoords.y,
+                    craftData.propcoords.z), heading = craftData.heading, jobenable = false, blipenable = craftData
+                .blipenable, model = craftData.model, offset = craftData.offset }
+                MySQL.update('UPDATE `qt-crafting` SET crafting = ? WHERE craft_id = ?', { json.encode(ndata), id })
                 server_notification(xPlayer.source, locales.main_title, locales.job_requirement_deleted, types.success)
                 break
             end
@@ -251,33 +266,33 @@ RegisterNetEvent("qt-crafting:RemoveRequirement", function (id)
 end)
 
 QT.RegisterCallback("qt-crafting:CheckOptionsEnable", function(source, cb, id)
-    MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', {id}, function(result)
+    MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', { id }, function(result)
         for i = 1, #result, 1 do
             local craftData = json.decode(result[i].crafting)
-             if craftData.jobenable then 
+            if craftData.jobenable then
                 cb(false)
-             else
+            else
                 cb(true)
-             end
+            end
         end
     end)
 end)
 
-QT.RegisterCallback("qt-crafting:CanCraftItem", function(source, cb, recipe)  
+QT.RegisterCallback("qt-crafting:CanCraftItem", function(source, cb, recipe)
     local totalItems = #recipe
     local itemsChecked = 0
     local canCraft = true
-    
+
     for _, data in ipairs(recipe) do
         local check = QT.HasItem(source, data.item, data.amount)
-        if not check then 
+        if not check then
             canCraft = false
-            break  
+            break
         else
             itemsChecked += 1
         end
     end
-    
+
     if itemsChecked == totalItems then
         cb(true)
     else
@@ -285,55 +300,80 @@ QT.RegisterCallback("qt-crafting:CanCraftItem", function(source, cb, recipe)
     end
 end)
 
-RegisterNetEvent("qt-crafting:UpdatePosition", function (new_position, id, craft_name)
+RegisterNetEvent("qt-crafting:UpdatePosition", function(new_position, id, craft_name)
     local xPlayer = QT.GetFromId(source)
     if xPlayer then
-        MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', {id}, function(result)
+        MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', { id }, function(result)
             for i = 1, #result, 1 do
                 local craftData = json.decode(result[i].crafting)
-                local ndata = { propcoords = vector3(new_position.x, new_position.y, new_position.z), heading = new_position.w, jobenable = craftData.jobenable, blipenable = craftData.blipenable, model = craftData.model }
-                MySQL.update('UPDATE `qt-crafting` SET crafting = ? WHERE craft_id = ?', {json.encode(ndata), id})
-                server_notification(xPlayer.source, locales.main_title, locales.position_changed ..craft_name, types.success)
-              break
+                local ndata = { propcoords = vector3(new_position.x, new_position.y, new_position.z), heading =
+                new_position.w, jobenable = craftData.jobenable, blipenable = craftData.blipenable, model = craftData
+                .model, offset = craftData.offset }
+                MySQL.update('UPDATE `qt-crafting` SET crafting = ? WHERE craft_id = ?', { json.encode(ndata), id })
+                server_notification(xPlayer.source, locales.main_title, locales.position_changed .. craft_name,
+                    types.success)
+                break
             end
         end)
     end
 end)
 
+RegisterNetEvent("qt-crafting:UpdateHeight", function(new_height, id)
+    print(new_height, id)
+    local xPlayer = QT.GetFromId(source)
+    if xPlayer then
+        MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', { id }, function(result)
+            for i = 1, #result, 1 do
+                local craftData = json.decode(result[i].crafting)
+                local ndata = { propcoords = vector3(craftData.propcoords.x, craftData.propcoords.y, craftData.propcoords.z), heading =
+                craftData.heading, jobenable = craftData.jobenable, blipenable = craftData.blipenable, model = craftData
+                .model, offset = tonumber(new_height) }
+                MySQL.update('UPDATE `qt-crafting` SET crafting = ? WHERE craft_id = ?', { json.encode(ndata), id })
+                break
+            end
+        end)
+    end
+end)
+
+
 QT.RegisterCallback("qt-crafting:GetEntityModel", function(source, cb, id)
-    MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', {id}, function(result)
+    MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', { id }, function(result)
         for i = 1, #result, 1 do
             local craftData = json.decode(result[i].crafting)
             local model = craftData.model
-               cb(model)
-             break
+            cb(model)
+            break
         end
     end)
 end)
 
 QT.RegisterCallback("qt-crafting:GetEntityCoords", function(source, cb, id)
-    MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', {id}, function(result)
+    MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', { id }, function(result)
         for i = 1, #result, 1 do
             local craftData = json.decode(result[i].crafting)
-            local coords = vector4(craftData.propcoords.x, craftData.propcoords.y, craftData.propcoords.z, craftData.heading)
-               cb(coords)
-             break
+            local coords = vector4(craftData.propcoords.x, craftData.propcoords.y, craftData.propcoords.z,
+                craftData.heading)
+            cb(coords)
+            break
         end
     end)
 end)
 
-RegisterNetEvent("qt-crafting:UpdateBlip", function (blip_data, id, craft_name)
+RegisterNetEvent("qt-crafting:UpdateBlip", function(blip_data, id, craft_name)
     local xPlayer = QT.GetFromId(source)
     if xPlayer then
-        MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', {id}, function(result)
+        MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', { id }, function(result)
             for i = 1, #result, 1 do
                 local craftData = json.decode(result[i].crafting)
-                local ndata = { propcoords = vector3(craftData.propcoords.x, craftData.propcoords.y, craftData.propcoords.z), heading = craftData.heading, jobenable = craftData.jobenable, blipenable = true, model = craftData.model }
-                MySQL.update('UPDATE `qt-crafting` SET crafting = ? WHERE craft_id = ?', {json.encode(ndata), id})
-                MySQL.update('UPDATE `qt-crafting` SET blipdata = ? WHERE craft_id = ?', {json.encode(blip_data), id})
-                server_notification(xPlayer.source, locales.main_title, locales.position_changed_blip ..craft_name, types.success)
+                local ndata = { propcoords = vector3(craftData.propcoords.x, craftData.propcoords.y,
+                    craftData.propcoords.z), heading = craftData.heading, jobenable = craftData.jobenable, blipenable = true, model =
+                craftData.model, offset = craftData.offset }
+                MySQL.update('UPDATE `qt-crafting` SET crafting = ? WHERE craft_id = ?', { json.encode(ndata), id })
+                MySQL.update('UPDATE `qt-crafting` SET blipdata = ? WHERE craft_id = ?', { json.encode(blip_data), id })
+                server_notification(xPlayer.source, locales.main_title, locales.position_changed_blip .. craft_name,
+                    types.success)
                 break
-            end 
+            end
         end)
     end
 end)
@@ -341,28 +381,35 @@ end)
 RegisterNetEvent("qt-crafting:UpdateItems", function(id, item, need_data, task)
     local xPlayer = QT.GetFromId(source)
     if xPlayer then
-        if task == "delete" then 
-            MySQL.Async.execute('DELETE FROM `qt-crafting-items` WHERE craft_id = ? AND item = ?', {id, item})
+        if task == "delete" then
+            MySQL.Async.execute('DELETE FROM `qt-crafting-items` WHERE craft_id = ? AND item = ?', { id, item })
             server_notification(xPlayer.source, locales.main_title, locales.success_delete_item, types.success)
-        elseif task == "time" then 
-            MySQL.update('UPDATE `qt-crafting-items` SET time = ? WHERE craft_id = ? AND item = ?', {need_data, id, item})
+        elseif task == "time" then
+            MySQL.update('UPDATE `qt-crafting-items` SET time = ? WHERE craft_id = ? AND item = ?', { need_data, id, item })
             server_notification(xPlayer.source, locales.main_title, locales.success_changed_time, types.success)
-        elseif task == "recipe" then 
-            MySQL.update('UPDATE `qt-crafting-items` SET recipe = ? WHERE craft_id = ? AND item = ? ', {json.encode(need_data), id, item})
+        elseif task == "recipe" then
+            MySQL.update('UPDATE `qt-crafting-items` SET recipe = ? WHERE craft_id = ? AND item = ? ',
+                { json.encode(need_data), id, item })
             server_notification(xPlayer.source, locales.main_title, locales.updated_recipe_for_item, types.success)
-        elseif task == "label" then 
-            MySQL.update('UPDATE `qt-crafting-items` SET item_label = ? WHERE craft_id = ? AND item = ? ', {need_data, id, item})
+        elseif task == "label" then
+            MySQL.update('UPDATE `qt-crafting-items` SET item_label = ? WHERE craft_id = ? AND item = ? ',
+                { need_data, id, item })
             server_notification(xPlayer.source, locales.main_title, locales.item_label_updated, types.success)
-        elseif task == "amount" then 
-            MySQL.update('UPDATE `qt-crafting-items` SET amount = ? WHERE craft_id = ? AND item = ? ', {json.encode(need_data), id, item})
+        elseif task == "amount" then
+            MySQL.update('UPDATE `qt-crafting-items` SET amount = ? WHERE craft_id = ? AND item = ? ',
+                { json.encode(need_data), id, item })
             server_notification(xPlayer.source, locales.main_title, locales.item_amount_reward_upd, types.success)
-        elseif task == "model" then 
-            print("chegou model")
-            MySQL.update('UPDATE `qt-crafting-items` SET model = ? WHERE craft_id = ? AND item = ? ', {need_data, id, item})
+        elseif task == "model" then
+            MySQL.update('UPDATE `qt-crafting-items` SET model = ? WHERE craft_id = ? AND item = ? ',
+                { need_data, id, item })
+            server_notification(xPlayer.source, locales.main_title, locales.item_model_upd, types.success)
+        elseif task == "anim" then
+            MySQL.update('UPDATE `qt-crafting-items` SET anim = ? WHERE craft_id = ? AND item = ? ',
+                { need_data, id, item })
             server_notification(xPlayer.source, locales.main_title, locales.item_model_upd, types.success)
         end
     end
-end) 
+end)
 
 RegisterNetEvent("qt-crafting:KickPlayer", function()
     DropPlayer(source, locales.kick_reason)
