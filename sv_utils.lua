@@ -106,7 +106,8 @@ QT.RegisterCallback("qt-crafting:GetListItems", function(source, cb, args)
                     item_label = someData.item_label,
                     model = someData.model,
                     amount = someData.amount,
-                    anim = someData.anim
+                    anim = someData.anim,
+                    level = someData.level
                 }
             end
             cb(send)
@@ -130,7 +131,8 @@ QT.RegisterCallback("qt-crafting:fetchItemsFromId", function(source, cb, args)
                     amount = someData.amount,
                     time = someData.time,
                     model = someData.model,
-                    anim = someData.anim
+                    anim = someData.anim,
+                    level = someData.level
                 }
             end
             cb(send)
@@ -160,7 +162,7 @@ RegisterNetEvent("qt-crafting:AddItemCrafting", function(data)
     local xPlayer = QT.GetFromId(source)
     if xPlayer then
         MySQL.Async.execute(
-            'INSERT INTO `qt-crafting-items` (craft_id, item, item_label, recipe, time, amount, model, anim) VALUES (@craft_id, @item, @item_label, @recipe, @time, @amount, @model, @anim)',
+            'INSERT INTO `qt-crafting-items` (craft_id, item, item_label, recipe, time, amount, model, anim, level) VALUES (@craft_id, @item, @item_label, @recipe, @time, @amount, @model, @anim, @level)',
             {
                 ['@craft_id'] = data.craft_id,
                 ['@item'] = data.main_item,
@@ -169,7 +171,8 @@ RegisterNetEvent("qt-crafting:AddItemCrafting", function(data)
                 ['@amount'] = data.amount,
                 ['@time'] = data.time,
                 ['@model'] = data.model,
-                ['@anim'] = data.anim
+                ['@anim'] = data.anim,
+                ['@level'] = data.level
             }, function(result)
             end)
     end
@@ -319,7 +322,6 @@ RegisterNetEvent("qt-crafting:UpdatePosition", function(new_position, id, craft_
 end)
 
 RegisterNetEvent("qt-crafting:UpdateHeight", function(new_height, id)
-    print(new_height, id)
     local xPlayer = QT.GetFromId(source)
     if xPlayer then
         MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', { id }, function(result)
@@ -406,7 +408,11 @@ RegisterNetEvent("qt-crafting:UpdateItems", function(id, item, need_data, task)
         elseif task == "anim" then
             MySQL.update('UPDATE `qt-crafting-items` SET anim = ? WHERE craft_id = ? AND item = ? ',
                 { need_data, id, item })
-            server_notification(xPlayer.source, locales.main_title, locales.item_model_upd, types.success)
+            server_notification(xPlayer.source, locales.main_title, locales.item_anim_upd, types.success)
+        elseif task == "level" then
+            MySQL.update('UPDATE `qt-crafting-items` SET level = ? WHERE craft_id = ? AND item = ? ',
+                { need_data, id, item })
+            server_notification(xPlayer.source, locales.main_title, locales.item_level_upd, types.success)
         end
     end
 end)

@@ -151,7 +151,20 @@ CraftMenu = function(id, name, coords, objectid, offset)
                     onSelect = previewCraftable,
                     arrow = true,
                     metadata = itemMetadata,
-                    args = { menu_id = id, anim = someData.anim, model = someData.model, craft_item = someData.item, item_label = someData.item_label, time = someData.time, amount = someData.amount, recipe = someData.recipe, coords = coords, objectid = objectid, offset = offset }
+                    args = { 
+                        menu_id = id, 
+                        anim = someData.anim, 
+                        model = someData.model, 
+                        craft_item = someData.item, 
+                        item_label = someData.item_label, 
+                        time = someData.time, 
+                        amount = someData.amount, 
+                        recipe = someData.recipe, 
+                        coords = coords, 
+                        objectid = objectid, 
+                        offset = offset,
+                        level = someData.level
+                    }
                 }
             end
 
@@ -296,12 +309,23 @@ function previewCraftable(data)
         local label = item.label
         local inventoryAmount = exports.ox_inventory:GetItemCount(item.item)
         local imageURL = "nui://" .. Config.ImagePath .. item.item .. ".png"
-        craftable = craftable and inventoryAmount >= amount
+        local levelNeeded = tonumber(data.level) or 0
+        local playerLevel = exports["cw-rep"]:getCurrentLevel('crafting') or 0
+
+        craftable = craftable and inventoryAmount >= amount and levelNeeded <= playerLevel
+        
+        local description
+        if levelNeeded > 0 then
+            description = string.format('Possui: %s  \nExperiência Necessária: %s', inventoryAmount, levelNeeded)
+        else
+            description = string.format('Possui: %s', inventoryAmount)
+        end
+
         secondaryOptions[#secondaryOptions + 1] = {
             title = string.format('%sx %s', amount, label),
             icon = imageURL,
             image = imageURL,
-            description = string.format('Possui: %s', inventoryAmount),
+            description = description,
             disabled = not craftable,
         }
     end
@@ -316,7 +340,17 @@ function previewCraftable(data)
         title = 'Fabricar',
         arrow = true,
         event = "qt-crafting:CraftCertainItem",
-        args = { craft_item = data.craft_item, item_label = data.item_label, time = data.time, amount = data.amount, recipe = data.recipe, coords = data.coords, objectid = data.objectid, anim = data.anim },
+        args = { 
+            craft_item = data.craft_item, 
+            item_label = data.item_label, 
+            time = data.time, 
+            amount = data.amount, 
+            recipe = data.recipe, 
+            coords = data.coords, 
+            objectid = data.objectid, 
+            anim = data.anim,
+            model = data.model,
+        },
         disabled = not craftable
     }
     -- if craftable.required_blueprint then

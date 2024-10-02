@@ -304,6 +304,19 @@ AddEventHandler('qt-crafting:OpenEditFunctions', function(args)
                                                         TriggerServerEvent("qt-crafting:UpdateItems", args.craft_id, someData.item, anim[1], "anim")
                                                     end,
                                                 },
+                                                -- alterar nível necessário para craftar o item
+                                                {
+                                                    title = locales.item_level,
+                                                    description = string.format('Atual: %s', tonumber(someData.level)) or "Sem restrição de nível.",
+                                                    icon = "user",
+                                                    onSelect = function()
+                                                        local level = lib.inputDialog(args.craft_name, {
+                                                            { type = 'number', label = locales.item_level, description = locales.desc_add_8, default = someData.level, required = true },
+                                                        })
+                                                        if not level then return lib.showContext('edit_options_items') end
+                                                        TriggerServerEvent("qt-crafting:UpdateItems", args.craft_id, someData.item, level[1], "level")
+                                                    end,
+                                                },
                                             }
                                         })
                                         lib.showContext('edit_options_items')

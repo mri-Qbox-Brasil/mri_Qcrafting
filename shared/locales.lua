@@ -131,4 +131,10 @@ locales = {
     height_changed = 'Altura da mesa alterada para',
     item_anim = 'Animação do item',
     desc_item_anim = 'Selecione a animação que o item deve ter no momento de ser criado.',
+    item_anim_upd = 'Animação do item atualizada com sucesso!',
+    item_level = 'Nível necessário',
+    desc_item_level = 'Selecione o nível de item que o player deve ter para fabricar esse item.',
+    item_level_upd = 'Nível do item atualizado com sucesso!',
+    target_event = 'Evento do Target',
+    desc_targetevent = 'Registrar como Evento do Target para o prop escolhido.'
 }
