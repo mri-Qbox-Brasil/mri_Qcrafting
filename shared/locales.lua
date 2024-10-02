@@ -136,5 +136,5 @@ locales = {
     desc_item_level = 'Selecione o nível de item que o player deve ter para fabricar esse item.',
     item_level_upd = 'Nível do item atualizado com sucesso!',
     target_event = 'Evento do Target',
-    desc_targetevent = 'Registrar como Evento do Target para o prop escolhido.'
+    desc_targetevent = 'Registrar como Evento do Target para o prop escolhido.                  Atual: %s'
 }

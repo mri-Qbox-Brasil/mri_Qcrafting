@@ -1,4 +1,5 @@
 local objects = {}
+local targetEntities = {}
 local isBusy = false
 local Blips = {}
 
@@ -8,6 +9,10 @@ AddEventHandler("onResourceStop", function(res)
     if GetCurrentResourceName() == res then
         for i = 1, #objects do
             DeleteObject(objects[i])
+        end
+
+        for i = 1, #targetEntities do
+            exports.ox_target:removeModel(targetEntities[i])
         end
 
         DeleteObject(CRAFTABLE_OBJ)
@@ -40,41 +45,85 @@ local function CreateTables()
                 PlaceObjectOnGroundProperly(propobj)
 
                 if Config.Target == "ox_target" then
-                    exports.ox_target:addLocalEntity(propobj, {
-                        {
-                            name = 'table_' .. v.id,
-                            label = string.format('%s %s', locales.enter_craftable, v.name),
-                            icon = "fa-solid fa-hammer",
-                            distance = 3,
-                            canInteract = function()
-                                if v.jobenb then
-                                    local loop = v.jobs
-                                    for _, item in ipairs(loop) do
-                                        if item == QT.getjob() or item == QT.getgang() then
-                                            if not isBusy then
-                                                return true
-                                            else
-                                                return false
+                    if not v.targetable then
+                        exports.ox_target:addLocalEntity(propobj, {
+                            {
+                                name = 'table_' .. v.id,
+                                label = string.format('%s %s', locales.enter_craftable, v.name),
+                                icon = "fa-solid fa-hammer",
+                                distance = 3,
+                                canInteract = function()
+                                    if v.jobenb then
+                                        local loop = v.jobs
+                                        for _, item in ipairs(loop) do
+                                            if item == QT.getjob() or item == QT.getgang() then
+                                                if not isBusy then
+                                                    return true
+                                                else
+                                                    return false
+                                                end
                                             end
                                         end
-                                    end
-                                else
-                                    if not isBusy then
-                                        return true
                                     else
-                                        return false
+                                        if not isBusy then
+                                            return true
+                                        else
+                                            return false
+                                        end
                                     end
-                                end
-                            end,
-                            onSelect = function(data)
-                                PlaySoundFrontend(-1, "Place_Prop_Success", "DLC_Dmod_Prop_Editor_Sounds", 1)
+                                end,
+                                onSelect = function(data)
+                                    PlaySoundFrontend(-1, "Place_Prop_Success", "DLC_Dmod_Prop_Editor_Sounds", 1)
 
-                                CraftMenu(v.id, v.name, v.coords, k, v.offset)
-                            end,
-                            -- onExit = toggleCam(false)
-                        }
-                    })
-                elseif Config.Target == "qb-target" then ---@deprated NÃO USEM, SEM SUPORTE
+                                    CraftMenu(v.id, v.name, v.coords, k, v.offset)
+                                end,
+                                -- onExit = toggleCam(false)
+                            }
+                        })
+                    else
+                        -- verificar se na tabela targetEntities existe um v.model igual
+                        -- for i = 1, #targetEntities do
+                        --     if targetEntities[i] == v.model then
+                        --         return
+                        --     end
+                        -- end
+
+                        targetEntities[#targetEntities + 1] = v.model
+                        exports.ox_target:addModel(v.model, {
+                            {
+                                name = 'table_' .. v.id,
+                                label = string.format('%s %s', locales.enter_craftable, v.name),
+                                icon = "fa-solid fa-hammer",
+                                distance = 3,
+                                canInteract = function()
+                                    if v.jobenb then
+                                        local loop = v.jobs
+                                        for _, item in ipairs(loop) do
+                                            if item == QT.getjob() or item == QT.getgang() then
+                                                if not isBusy then
+                                                    return true
+                                                else
+                                                    return false
+                                                end
+                                            end
+                                        end
+                                    else
+                                        if not isBusy then
+                                            return true
+                                        else
+                                            return false
+                                        end
+                                    end
+                                end,
+                                onSelect = function(data)
+                                    PlaySoundFrontend(-1, "Place_Prop_Success", "DLC_Dmod_Prop_Editor_Sounds", 1)
+                                    CraftMenu(v.id, v.name, data.coords, k, v.offset, data.entity)
+                                end,
+                            }
+                        })
+                    end
+                        
+                elseif Config.Target == "qb-target" then ---@deprecated NÃO USEM, SEM SUPORTE
                     exports['qb-target']:AddTargetEntity(propobj, {
                         options = {
                             {
@@ -127,13 +176,17 @@ AddEventHandler("qt-crafting:Sync", function()
         DeleteObject(objects[i])
     end
     objects = {}
+    for i = 1, #targetEntities do
+        exports.ox_target:removeModel(targetEntities[i])
+    end
+    targetEntities = {}
     CreateTables()
     for i = 1, #Blips do
         RemoveBlip(Blips[i])
     end
 end)
 
-CraftMenu = function(id, name, coords, objectid, offset)
+CraftMenu = function(id, name, coords, objectid, offset, entity)
     QT.TriggerCallback('qt-crafting:fetchItemsFromId', function(result)
         if result then
             local options = {}
@@ -163,7 +216,8 @@ CraftMenu = function(id, name, coords, objectid, offset)
                         coords = coords, 
                         objectid = objectid, 
                         offset = offset,
-                        level = someData.level
+                        level = someData.level,
+                        entity = entity
                     }
                 }
             end
@@ -279,7 +333,12 @@ function previewCraftable(data)
     local success, err = pcall(lib.requestModel, data.model)
     if success then
         local offset = data.offset and data.offset or 1.1
-        toggleCam(true, objects[data.objectid], offset)
+        toggleCam(true, data.entity and data.entity or objects[data.objectid], offset)
+        if data.entity then
+            local coords = GetOffsetFromEntityInWorldCoords(data.entity, 0, 0, 0)
+            data.coords = coords
+        end
+
         CRAFTABLE_OBJ = CreateObject(data.model, data.coords.x, data.coords.y, data.coords.z + offset, true, false, true)
         SetEntityHeading(CRAFTABLE_OBJ, GetEntityHeading(cache.ped) + 180)
         SetEntityInvincible(CRAFTABLE_OBJ, true)

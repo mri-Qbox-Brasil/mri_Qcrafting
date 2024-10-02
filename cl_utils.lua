@@ -32,7 +32,13 @@ AddEventHandler('qt-crafting:EditMenu', function()
                     event = 'qt-crafting:OpenEditFunctions',
                     description = locales.listdescription,
                     arrow = true,
-                    args = { craft_name = dat.craft_name, craft_id = dat.craft_id, jobs = dat.jobs, offset = dat.offset }
+                    args = { 
+                        craft_name = dat.craft_name, 
+                        craft_id = dat.craft_id, 
+                        jobs = dat.jobs, 
+                        offset = dat.offset, 
+                        targetable = dat.targetable 
+                    }
                 }
             end
         end
@@ -467,6 +473,26 @@ AddEventHandler('qt-crafting:OpenEditFunctions', function(args)
                 end,
                 description = locales.desc_deleting
             },
+            {
+                title = locales.target_event,
+                icon = "fa-solid fa-bolt",
+                description = (locales.desc_targetevent):format(args.targetable and "Ativado" or "Desativado"),
+                onSelect = function()
+                    local options = {
+                        { label = "Sim", value = true },
+                        { label = "Não", value = false },
+                    }
+                    local input = lib.inputDialog(locales.target_event, {
+                        { type = 'select', label = locales.target_event, options = options, default = args.targetable or false },
+                    })
+                    if input == nil then return end
+                    TriggerServerEvent("qt-crafting:UpdateTargetable", input[1], args.craft_id)
+                    Wait(100)
+                    TriggerServerEvent("qt-crafting:Update")
+                    TriggerEvent('qt-crafting:EditMenu')
+                end,
+            },
+
         }
     })
 

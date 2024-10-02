@@ -84,7 +84,8 @@ QT.RegisterCallback("qt-crafting:GetList", function(source, cb)
                     craft_id = result[i].craft_id,
                     jobs = json.decode(result[i].jobs),
                     crafting = craftData,
-                    offset = craftData.offset and craftData.offset or 1.1
+                    offset = craftData.offset and craftData.offset or 1.1,
+                    targetable = craftData.targetable or false
                 }
             end
             cb(send)
@@ -195,7 +196,8 @@ AddEventHandler('onServerResourceStart', function(resourceName)
                     blipenb = craftData.blipenable,
                     blipdata = blipData,
                     jobs = jobsData,
-                    offset = craftData.offset and tonumber(craftData.offset) or 1.1
+                    offset = craftData.offset and tonumber(craftData.offset) or 1.1,
+                    targetable = craftData.targetable
                 })
             end
         end)
@@ -224,7 +226,8 @@ AddEventHandler("qt-crafting:Update", function()
                 blipenb = craftData.blipenable,
                 blipdata = blipData,
                 jobs = jobsData,
-                offset = craftData.offset and tonumber(craftData.offset) or 1.1
+                offset = craftData.offset and tonumber(craftData.offset) or 1.1,
+                targetable = craftData.targetable
             })
         end
     end)
@@ -330,6 +333,22 @@ RegisterNetEvent("qt-crafting:UpdateHeight", function(new_height, id)
                 local ndata = { propcoords = vector3(craftData.propcoords.x, craftData.propcoords.y, craftData.propcoords.z), heading =
                 craftData.heading, jobenable = craftData.jobenable, blipenable = craftData.blipenable, model = craftData
                 .model, offset = tonumber(new_height) }
+                MySQL.update('UPDATE `qt-crafting` SET crafting = ? WHERE craft_id = ?', { json.encode(ndata), id })
+                break
+            end
+        end)
+    end
+end)
+
+RegisterNetEvent("qt-crafting:UpdateTargetable", function(boolean, id)
+    local xPlayer = QT.GetFromId(source)
+    if xPlayer then
+        MySQL.Async.fetchAll('SELECT * FROM `qt-crafting` WHERE craft_id = ?', { id }, function(result)
+            for i = 1, #result, 1 do
+                local craftData = json.decode(result[i].crafting)
+                local ndata = { propcoords = vector3(craftData.propcoords.x, craftData.propcoords.y, craftData.propcoords.z), heading =
+                craftData.heading, jobenable = craftData.jobenable, blipenable = craftData.blipenable, model = craftData
+                .model, offset = craftData.offset, targetable = boolean }
                 MySQL.update('UPDATE `qt-crafting` SET crafting = ? WHERE craft_id = ?', { json.encode(ndata), id })
                 break
             end
