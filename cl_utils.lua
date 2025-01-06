@@ -44,6 +44,7 @@ AddEventHandler('qt-crafting:EditMenu', function()
         end
         lib.registerContext({
             id = 'crafting_list',
+            menu = 'menu_crafting',
             title = locales.list,
             options = options
         })
