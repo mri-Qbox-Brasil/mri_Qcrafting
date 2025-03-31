@@ -108,7 +108,8 @@ QT.RegisterCallback("qt-crafting:GetListItems", function(source, cb, args)
                     model = someData.model,
                     amount = someData.amount,
                     anim = someData.anim,
-                    level = someData.level
+                    level = someData.level,
+                    hability = someData.hability,
                 }
             end
             cb(send)
@@ -133,7 +134,8 @@ QT.RegisterCallback("qt-crafting:fetchItemsFromId", function(source, cb, args)
                     time = someData.time,
                     model = someData.model,
                     anim = someData.anim,
-                    level = someData.level
+                    level = someData.level,
+                    hability = someData.hability or 'crafting',
                 }
             end
             cb(send)
@@ -163,7 +165,7 @@ RegisterNetEvent("qt-crafting:AddItemCrafting", function(data)
     local xPlayer = QT.GetFromId(source)
     if xPlayer then
         MySQL.Async.execute(
-            'INSERT INTO `qt-crafting-items` (craft_id, item, item_label, recipe, time, amount, model, anim, level) VALUES (@craft_id, @item, @item_label, @recipe, @time, @amount, @model, @anim, @level)',
+            'INSERT INTO `qt-crafting-items` (craft_id, item, item_label, recipe, time, amount, model, anim, level, hability) VALUES (@craft_id, @item, @item_label, @recipe, @time, @amount, @model, @anim, @level, @hability)',
             {
                 ['@craft_id'] = data.craft_id,
                 ['@item'] = data.main_item,
@@ -173,7 +175,8 @@ RegisterNetEvent("qt-crafting:AddItemCrafting", function(data)
                 ['@time'] = data.time,
                 ['@model'] = data.model,
                 ['@anim'] = data.anim,
-                ['@level'] = data.level
+                ['@level'] = data.level,
+                ['@hability'] = data.hability,
             }, function(result)
             end)
     end
@@ -432,6 +435,10 @@ RegisterNetEvent("qt-crafting:UpdateItems", function(id, item, need_data, task)
             MySQL.update('UPDATE `qt-crafting-items` SET level = ? WHERE craft_id = ? AND item = ? ',
                 { need_data, id, item })
             server_notification(xPlayer.source, locales.main_title, locales.item_level_upd, types.success)
+        elseif task == "hability" then
+            MySQL.update('UPDATE `qt-crafting-items` SET hability = ? WHERE craft_id = ? AND item = ? ',
+                { need_data, id, item })
+            server_notification(xPlayer.source, locales.main_title, locales.item_hability_upd, types.success)
         end
     end
 end)

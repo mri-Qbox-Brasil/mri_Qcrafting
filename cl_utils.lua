@@ -32,12 +32,12 @@ AddEventHandler('qt-crafting:EditMenu', function()
                     event = 'qt-crafting:OpenEditFunctions',
                     description = locales.listdescription,
                     arrow = true,
-                    args = { 
-                        craft_name = dat.craft_name, 
-                        craft_id = dat.craft_id, 
-                        jobs = dat.jobs, 
-                        offset = dat.offset, 
-                        targetable = dat.targetable 
+                    args = {
+                        craft_name = dat.craft_name,
+                        craft_id = dat.craft_id,
+                        jobs = dat.jobs,
+                        offset = dat.offset,
+                        targetable = dat.targetable
                     }
                 }
             end
@@ -322,6 +322,19 @@ AddEventHandler('qt-crafting:OpenEditFunctions', function(args)
                                                         })
                                                         if not level then return lib.showContext('edit_options_items') end
                                                         TriggerServerEvent("qt-crafting:UpdateItems", args.craft_id, someData.item, level[1], "level")
+                                                    end,
+                                                },
+                                                -- alterar habilidade necessária para craftar o item
+                                                {
+                                                    title = locales.item_hability,
+                                                    description = string.format('Atual: %s', someData.hability) or "Sem restrição de habilidade.",
+                                                    icon = "user",
+                                                    onSelect = function()
+                                                        local result = lib.inputDialog(args.craft_name, {
+                                                            { type = 'input', label = locales.item_hability, description = locales.desc_add_9, default = someData.hability, required = true, placeholder = "crafting" },
+                                                        })
+                                                        if not result then return lib.showContext('edit_options_items') end
+                                                        TriggerServerEvent("qt-crafting:UpdateItems", args.craft_id, someData.item, result[1], "hability")
                                                     end,
                                                 },
                                             }

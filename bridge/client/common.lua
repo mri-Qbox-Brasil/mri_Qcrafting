@@ -122,7 +122,7 @@ local function CreateTables()
                             }
                         })
                     end
-                        
+
                 elseif Config.Target == "qb-target" then ---@deprecated NÃO USEM, SEM SUPORTE
                     exports['qb-target']:AddTargetEntity(propobj, {
                         options = {
@@ -204,19 +204,20 @@ CraftMenu = function(id, name, coords, objectid, offset, entity)
                     onSelect = previewCraftable,
                     arrow = true,
                     metadata = itemMetadata,
-                    args = { 
-                        menu_id = id, 
-                        anim = someData.anim, 
-                        model = someData.model, 
-                        craft_item = someData.item, 
-                        item_label = someData.item_label, 
-                        time = someData.time, 
-                        amount = someData.amount, 
-                        recipe = someData.recipe, 
-                        coords = coords, 
-                        objectid = objectid, 
+                    args = {
+                        menu_id = id,
+                        anim = someData.anim,
+                        model = someData.model,
+                        craft_item = someData.item,
+                        item_label = someData.item_label,
+                        time = someData.time,
+                        amount = someData.amount,
+                        recipe = someData.recipe,
+                        coords = coords,
+                        objectid = objectid,
                         offset = offset,
                         level = someData.level,
+                        hability = someData.hability,
                         entity = entity
                     }
                 }
@@ -369,13 +370,14 @@ function previewCraftable(data)
         local inventoryAmount = exports.ox_inventory:GetItemCount(item.item)
         local imageURL = "nui://" .. Config.ImagePath .. item.item .. ".png"
         local levelNeeded = tonumber(data.level) or 0
-        local playerLevel = exports["cw-rep"]:getCurrentLevel('crafting') or 0
+        local hability = data.hability or 'crafting'
+        local playerLevel = exports["cw-rep"]:getCurrentLevel(hability) or 0
 
         craftable = craftable and inventoryAmount >= amount and levelNeeded <= playerLevel
-        
+
         local description
         if levelNeeded > 0 then
-            description = string.format('Possui: %s  \nExperiência Necessária: %s', inventoryAmount, levelNeeded)
+            description = string.format('Possui: %s  \nHabilidade Necessária: %s \nExperiência Necessária: %s', inventoryAmount, hability, levelNeeded)
         else
             description = string.format('Possui: %s', inventoryAmount)
         end
@@ -399,14 +401,14 @@ function previewCraftable(data)
         title = 'Fabricar',
         arrow = true,
         event = "qt-crafting:CraftCertainItem",
-        args = { 
-            craft_item = data.craft_item, 
-            item_label = data.item_label, 
-            time = data.time, 
-            amount = data.amount, 
-            recipe = data.recipe, 
-            coords = data.coords, 
-            objectid = data.objectid, 
+        args = {
+            craft_item = data.craft_item,
+            item_label = data.item_label,
+            time = data.time,
+            amount = data.amount,
+            recipe = data.recipe,
+            coords = data.coords,
+            objectid = data.objectid,
             anim = data.anim,
             model = data.model,
         },
