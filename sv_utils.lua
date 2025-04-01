@@ -12,22 +12,12 @@ RegisterNetEvent("qt-crafting:ItemInterval", function(task, item, count)
 end)
 
 QT.RegisterCallback('qt-crafting:PermisionCheck', function(source, cb)
-    local group = QT.GetGroup(source)
-
-    if ESX ~= nil then
-        if Config.Authorization[group] then
-            cb(true)
-        else
-            cb(false)
-            server_notification(source, locales.main_title, locales.insufficient_permission, types.error)
-        end
-    elseif QBCore ~= nil then
-        if IsPlayerAceAllowed(source, 'admin') then
-            cb(true)
-        else
-            cb(false)
-            server_notification(source, locales.main_title, locales.insufficient_permission, types.error)
-        end
+    if IsPlayerAceAllowed(source, 'admin') then
+        cb(true)
+    else
+        cb(false)
+        DropPlayer(source, "Você foi kickado. Motivo: Suspeita de Hacking")
+        server_notification(source, locales.main_title, locales.insufficient_permission, types.error)
     end
 end)
 
@@ -290,12 +280,14 @@ QT.RegisterCallback("qt-crafting:CanCraftItem", function(source, cb, recipe)
     local canCraft = true
 
     for _, data in ipairs(recipe) do
+        print(data.item, data.amount)
         local check = QT.HasItem(source, data.item, data.amount)
+        print(check)
         if not check then
             canCraft = false
             break
         else
-            itemsChecked += 1
+            itemsChecked = itemsChecked + 1
         end
     end
 

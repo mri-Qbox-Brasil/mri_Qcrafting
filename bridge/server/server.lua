@@ -120,16 +120,19 @@ QT = {
 
     HasItem = function(src, item, amount)
         local xPlayer = QT.GetFromId(tonumber(src))
-        local inv = QT.GetInventory(src)
-        for k,v in pairs(inv) do
-            if v.name == item then
-                if v.count >= amount then
-                    return true, v.count
-                else
-                    return false, v.count
-                end
-            end
+        local inv = exports.ox_inventory:GetItemCount(src, item)
+        if inv >= amount then
+            return true, inv
         end
+        -- for k,v in pairs(inv) do
+        --     if v.name == item then
+        --         if v.count >= amount then
+        --             return true, v.count
+        --         else
+        --             return false, v.count
+        --         end
+        --     end
+        -- end
         return false, 0
     end,
 
