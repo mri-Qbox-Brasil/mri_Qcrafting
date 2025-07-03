@@ -5,6 +5,7 @@ RegisterNetEvent("qt-crafting:ItemInterval", function(task, item, count)
     if IsValidTask(task) and QT.GetFromId(source) then
         if task == "add" then
             QT.AddItem(source, item, count)
+            exports["cw-rep"]:updateSkill(source, 'crafting', 5)
         elseif task == "remove" then
             QT.RemoveItem(source, item, count)
         end
