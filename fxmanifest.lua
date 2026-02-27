@@ -25,3 +25,12 @@ dependencies {
     'oxmysql',
     'ox_lib',
 }
+
+ui_page 'web/dist/index.html'
+
+files {
+    'web/dist/index.html',
+    'web/dist/assets/*.js',
+    'web/dist/assets/*.css',
+    'web/dist/*.js', -- Sometimes images or chunks can be here
+}

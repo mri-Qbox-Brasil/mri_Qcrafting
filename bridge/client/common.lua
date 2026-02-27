@@ -2,6 +2,7 @@ local objects = {}
 local targetEntities = {}
 local isBusy = false
 local Blips = {}
+local currentCraftItems = {} -- Cache for current menu items
 
 local TABLE_CAM, CRAFTABLE_OBJ
 
@@ -186,54 +187,67 @@ AddEventHandler("qt-crafting:Sync", function()
     end
 end)
 
-CraftMenu = function(id, name, coords, objectid, offset, entity)
+-- Helper to fetch and send data to NUI
+local function RefreshCraftingData(menuId)
     QT.TriggerCallback('qt-crafting:fetchItemsFromId', function(result)
         if result then
-            local options = {}
+            local craftableItems = {}
             for i = 1, #result do
                 local someData = result[i]
-                local itemMetadata = {}
-
+                local ingredients = {}
+                
                 for _, item in ipairs(someData.recipe) do
-                    insert(itemMetadata, { label = item.label, value = item.amount })
+                    -- Fetch count for each ingredient
+                    local count = exports.ox_inventory:GetItemCount(item.item) or 0
+                    table.insert(ingredients, {
+                        name = item.item,
+                        label = item.label,
+                        amount = item.amount,
+                        count = count
+                    })
                 end
-                options[#options + 1] = {
-                    title = someData.item_label,
+
+                table.insert(craftableItems, {
+                    id = someData.item,
+                    name = someData.item,
+                    label = someData.item_label,
                     description = locales.items_recipe_desc .. someData.time .. "s",
-                    icon = "nui://" .. Config.ImagePath .. someData.item .. ".png",
-                    onSelect = previewCraftable,
-                    arrow = true,
-                    metadata = itemMetadata,
-                    args = { 
-                        menu_id = id, 
-                        anim = someData.anim, 
-                        model = someData.model, 
-                        craft_item = someData.item, 
-                        item_label = someData.item_label, 
-                        time = someData.time, 
-                        amount = someData.amount, 
-                        recipe = someData.recipe, 
-                        coords = coords, 
-                        objectid = objectid, 
-                        offset = offset,
-                        level = someData.level,
-                        entity = entity
-                    }
-                }
+                    image = "nui://" .. Config.ImagePath .. someData.item .. ".png",
+                    duration = someData.time * 1000,
+                    ingredients = ingredients,
+                    _data = someData,
+                    _menuId = menuId
+                })
             end
 
-            lib.registerContext({
-                id = 'crafting' .. id,
-                title = name,
-                options = options,
-                onExit = function()
-                    toggleCam(false)
-                end
+            -- Save to cache
+            currentCraftItems = craftableItems
+            
+            SendNUIMessage({
+                action = 'setCraftingData',
+                data = craftableItems
             })
-
-            lib.showContext('crafting' .. id)
         end
-    end, id)
+    end, menuId)
+end
+
+CraftMenu = function(id, name, coords, objectid, offset, entity)
+    -- Initial open
+    SetNuiFocus(true, true)
+    SendNUIMessage({
+        action = 'setVisible',
+        data = true
+    })
+    SendNUIMessage({
+        action = 'setTableName',
+        data = name
+    })
+    SendNUIMessage({
+        action = 'setPrimaryColor',
+        data = Config.PrimaryColor
+    })
+    
+    RefreshCraftingData(id)
 end
 
 local function ZoneCheck(v)
@@ -259,18 +273,30 @@ AddEventHandler("qt-crafting:CraftCertainItem", function(data)
                 -- utiizando scully_emotemenu para animações mais simples
                 exports.scully_emotemenu:playEmoteByCommand(data.anim, 0)
             end
-            local craft_process = progress(locales.craftingg .. data.item_label, data.time, "default")
+            -- Disable movement but don't show progress bar (NUI handles it)
+            FreezeEntityPosition(cache.ped, true)
+            Wait(data.time * 1000)
+            FreezeEntityPosition(cache.ped, false)
+            local craft_process = true
             if craft_process then
                 isBusy = false
                 ClearPedTasksImmediately(cache.ped)
                 for k, v in pairs(data.recipe) do
                     TriggerServerEvent("qt-crafting:ItemInterval", "remove", v.item, v.amount)
                 end
-                TriggerServerEvent("qt-crafting:ItemInterval", "add", data.craft_item, data.amount)
+                TriggerServerEvent("qt-crafting:ItemInterval", "add", data.item, data.amount)
                 notification(locales.main_title,
                     locales.successfull_crafted .. data.item_label .. locales.in_amount_of .. data.amount, types.success)
                 DeleteObject(CRAFTABLE_OBJ)
                 PlaySoundFrontend(-1, "PICK_UP", "HUD_FRONTEND_DEFAULT_SOUNDSET", 1)
+                
+                -- REFRESH NUI DATA HERE
+                -- We need the menuId. We can find it from the cached item.
+                local menuId = data.craft_id 
+                -- Wait a moment for inventory to update via server
+                Wait(500)
+                RefreshCraftingData(menuId)
+
             else
                 isBusy = false
                 notification(locales.main_title, locales.canceled_crafting_proccess, types.error)
@@ -434,3 +460,34 @@ function previewCraftable(data)
 
     lib.showContext('mri_Qcrafting:previewCraftable')
 end
+
+-- NUI Callbacks
+RegisterNUICallback('close', function(_, cb)
+    SetNuiFocus(false, false)
+    cb('ok')
+end)
+
+RegisterNUICallback('craftItem', function(data, cb)
+    local itemId = data.itemId
+    local foundItem = nil
+    
+    -- Find item in cache
+    for _, item in ipairs(currentCraftItems) do
+        if item.id == itemId then
+            foundItem = item
+            break
+        end
+    end
+    
+    if foundItem and foundItem._data then
+        -- Trigger the existing crafting logic
+        -- We need to make sure we don't duplicate the progress bar or logic that assumes ox_lib
+        -- trigger qt-crafting:CraftCertainItem expects 'data' with {recipe, item_label, time, etc}
+        -- The internal data structure is in _data
+        TriggerEvent("qt-crafting:CraftCertainItem", foundItem._data)
+        cb(true)
+    else
+        print("Item not found or invalid data")
+        cb(false)
+    end
+end)
