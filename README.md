@@ -60,3 +60,5 @@ A permissão é concedida automática para os grupos de `admin` e `god`. Você p
 - **/create** (Abre a criação de uma mesa no local onde você está)
 - **/edit** (Edita opções de uma mesa já criada)
 *(Lembrando que os nomes desses comandos podem ser trocados na configuração).*
+
+Nui Criada By Snow and mriQbox
